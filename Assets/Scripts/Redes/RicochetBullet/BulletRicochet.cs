@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 [RequireComponent(typeof(Rigidbody))]
 public class BulletRicochet : MonoBehaviour
@@ -9,6 +10,8 @@ public class BulletRicochet : MonoBehaviour
     public Rigidbody rb;
     public Vector3 dir;
     public string newTag;
+    
+    //public VisualEffect sparksPrefab;
 
     void Start()
     {
@@ -42,7 +45,10 @@ public class BulletRicochet : MonoBehaviour
 
             //ANTES PEGABA CON ALGUNAS SUPERFICIES Y SE IBA A OTRA LADO O COPIABA SU NORMAL EN VEZ DE REBOTAR. YA NO
 
+
+
             dir = Vector3.Reflect(dir, collision.GetContact(0).normal);
+            //sparksPrefab.SendEvent("Burst");
         }
     }
 
@@ -59,6 +65,7 @@ public class BulletRicochet : MonoBehaviour
         if (other.gameObject.CompareTag("Wall"))
         {
             Debug.LogWarning("TRIGEREO CON UNA PARED");
+            //sparksPrefab.Play();
         }
 
         //si choca con un enemigo o jugador que le haga daño
@@ -66,6 +73,7 @@ public class BulletRicochet : MonoBehaviour
         if (other.gameObject.CompareTag(newTag))
         //if (other.GetComponent<IDamageable>())
         {
+            Debug.LogWarning("TRIGEREO CON UN " + newTag);
 
         }
     }
