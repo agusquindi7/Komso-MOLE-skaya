@@ -281,10 +281,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77184bffefd7c2e43ad7d49e2e0255ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 15
-  rb: {fileID: 146281382797541090}
-  dir: {x: 0, y: 0, z: 0}
-  newTag: Player
+  _speed: 15
+  _rb: {fileID: 146281382797541090}
+  _dir: {x: 0, y: 0, z: 0}
+  _newTag: Player
+  _maxWallCount: 3
+  _wallCount: 0
 --- !u!96 &4392955972477312666
 TrailRenderer:
   serializedVersion: 3

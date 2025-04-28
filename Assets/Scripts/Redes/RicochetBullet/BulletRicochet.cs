@@ -6,10 +6,12 @@ using UnityEngine.VFX;
 [RequireComponent(typeof(Rigidbody))]
 public class BulletRicochet : MonoBehaviour
 {
-    public float speed = 20f;
-    public Rigidbody rb;
-    public Vector3 dir;
-    public string newTag;
+    [SerializeField] private float _speed = 20f;
+    [SerializeField] private Rigidbody _rb;
+    [SerializeField] private Vector3 _dir;
+    [SerializeField] private string _newTag;
+    [SerializeField] private int _maxWallCount = 3;
+    [SerializeField] private int _wallCount;
     
     //public VisualEffect sparksPrefab;
 
@@ -17,7 +19,7 @@ public class BulletRicochet : MonoBehaviour
     {
         //rb = GetComponent<Rigidbody>();
         //rb.velocity = transform.forward * speed;
-        dir = transform.forward;
+        _dir = transform.forward;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -47,34 +49,53 @@ public class BulletRicochet : MonoBehaviour
 
 
 
-            dir = Vector3.Reflect(dir, collision.GetContact(0).normal);
+            _dir = Vector3.Reflect(_dir, collision.GetContact(0).normal);
             //sparksPrefab.SendEvent("Burst");
         }
     }
 
     public void FixedUpdate()
     {
-        rb.velocity = dir * speed;
+        _rb.velocity = _dir * _speed;
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        IDamageable damageable = other.GetComponent<IDamageable>(); // Get the IDamageable component
+        if (damageable != null)
+        {
+            Debug.Log("bala daño a " + other);
+            damageable.TakeDamage(10);
+            Destroy(gameObject);
+        }
+
         //ACA PUEDO HACER QUE SALGAN CHISPITAS O TOMAR A ENEMIGOS PARA BAJARLES LA VIDA, INCLUSO UN CONTADOR DE REBOTES, ASI AL 3ER REBOTE SE APAQUE LA BALA. CUANDO EL COLLIDER.COLLISION LLEGUE
         //PARA GRANADA CON GRAVITY TAMBIEN PODRIA SERVIR
         //O UNA MECANICA QUE SI LLEGA A UN ENEMIGO, LO INSTAKILLEE Y LE PASE LA DIRECCION DEL PROXIMO ENEMIGO Y QUE LO MANDE HACIA ESA DIRECCION. SE VIENE BALA RAYO
+
         if (other.gameObject.CompareTag("Wall"))
         {
             Debug.LogWarning("TRIGEREO CON UNA PARED");
             //sparksPrefab.Play();
+
+            _wallCount++;
+            MaxCount();
         }
 
-        //si choca con un enemigo o jugador que le haga daño
-        //podria incluso hacer destruibles
-        if (other.gameObject.CompareTag(newTag))
-        //if (other.GetComponent<IDamageable>())
-        {
-            Debug.LogWarning("TRIGEREO CON UN " + newTag);
+        ////podria incluso hacer destruibles, o hacerlo por interface mejor
+        //if (other.gameObject.CompareTag(_newTag))
+        ////if (other.GetComponent<IDamageable>())
+        //{
+        //    Debug.LogWarning("TRIGEREO CON UN " + _newTag);        
+            
+        //}
+    }
 
+    public void MaxCount()
+    {
+        if (_wallCount >= _maxWallCount)
+        {
+            gameObject.SetActive(false);
         }
     }
 }

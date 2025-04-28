@@ -5,8 +5,31 @@ using UnityEngine;
 public class PlayerShoot : MonoBehaviour
 {
     public Transform spawnerEmpty;
+    public Transform spawnerBullet;
+    public GameObject bullet;
+    public float cdMax = 2f;
+    public float cd;
+    public KeyCode keyShoot = KeyCode.Mouse0;
+
 
     void Update()
+    {
+        RotateSpawner();
+        if (Input.GetKeyDown(keyShoot))
+        {
+            if (cd >= cdMax)
+            {
+                Instantiate(bullet, spawnerBullet.position, spawnerBullet.rotation);
+
+                cd = 0;
+            }
+        }
+
+        cd += Mathf.Clamp(Time.deltaTime, 0, 3);
+
+    }
+
+    public void RotateSpawner()
     {
         //Vector3 mousePos = Input.mousePosition;
         //Vector2 dir = new Vector2(mousePos.x, mousePos.y);
@@ -43,8 +66,7 @@ public class PlayerShoot : MonoBehaviour
         Vector2 dir = (mouseWorld - spawnerEmpty.position).normalized;
 
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        
-        spawnerEmpty.rotation = Quaternion.Euler(0f, 0f, angle);
 
+        spawnerEmpty.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 }
