@@ -285,7 +285,7 @@ MonoBehaviour:
   _rb: {fileID: 146281382797541090}
   _dir: {x: 0, y: 0, z: 0}
   _newTag: Player
-  _maxWallCount: 3
+  _maxWallCount: 5
   _wallCount: 0
 --- !u!96 &4392955972477312666
 TrailRenderer:

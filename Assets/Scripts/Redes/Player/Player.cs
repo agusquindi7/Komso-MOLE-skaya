@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+using Fusion;
+using Fusion.Addons.Physics;
 
 public class Player : Entity
 {    
@@ -24,6 +27,13 @@ public class Player : Entity
     [SerializeField] protected bool _cantMove;
 
 
+    //DEL NERTWORK
+    private bool _isJumpingPressed;
+    private bool _isShootingPressed;
+    private float _horizontalInput;
+
+    public Action OnShoot;
+    public Action<float> OnMove;
 
 
 
@@ -35,6 +45,14 @@ public class Player : Entity
     public KeyCode Ability;
     public KeyCode codeJump;
     public KeyCode codeAttack;
+
+
+    public override void Spawned()
+    {
+        _rb = GetComponent<NetworkRigidbody3D>();
+        _life = _maxLife;                
+        GameManager.Instance.AddToList(this);
+    }
 
     protected override void Awake()
     {
@@ -51,14 +69,38 @@ public class Player : Entity
 
     void Update()
     {
-       Grounded();
-       if (Input.GetKeyDown(codeJump) && _isGrounded == true) Jump();        
+        if (!HasStateAuthority) return;
+
+        _horizontalInput = Input.GetAxis("Horizontal");
+
+        if (Input.GetKeyDown(KeyCode.W)) _isJumpingPressed = true;
+
+        //if (Input.GetKeyDown(KeyCode.Mouse0)) _isShootingPressed = true;
+
+
+        //CODIGO QUE ANDABA BIEN SIN NETWORK
+       // Grounded();
+       //if (Input.GetKeyDown(codeJump) && _isGrounded == true) Jump();        
     }
 
-    private void FixedUpdate()
+    //protected void FixedUpdate()
+    public override void FixedUpdateNetwork()
     {
-        NewGravity();
-        MovePlayer();   
+        //MOVE QUE ANDABA BIEN SIN NEWTWORK
+        //NewGravity();
+        //MovePlayer();
+
+        //var _horizontalInput = Input.GetAxisRaw("Horizontal");
+        //var _verticalInput = Input.GetAxisRaw("Vertical");
+        //MovePlayer(_horizontalInput);
+        
+        Movement(_horizontalInput);
+        if (_isJumpingPressed)
+        {
+            Jump();
+            _isJumpingPressed = false;
+        }
+
     }
 
     #region LifeMethods
@@ -91,30 +133,94 @@ public class Player : Entity
     }
     #endregion
 
-    public void MovePlayer()
+    void Movement(float xAxis)
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        if (xAxis != 0)
+        {
+            transform.forward = Vector3.right * Mathf.Sign(xAxis);
 
+            _rb.Rigidbody.velocity += Vector3.right * (xAxis * _currentSpeed * Runner.DeltaTime);
+
+            if (Mathf.Abs(_rb.Rigidbody.velocity.z) > _currentSpeed)
+            {
+                var velocity = Vector3.ClampMagnitude(_rb.Rigidbody.velocity, _currentSpeed);
+
+                velocity.y = _rb.Rigidbody.velocity.y;
+                _rb.Rigidbody.velocity = velocity;
+            }
+
+            OnMove(xAxis);
+        }
+        else
+        {
+            var velocity = _rb.Rigidbody.velocity;
+            velocity.z = 0;
+
+            _rb.Rigidbody.velocity = velocity;
+
+            OnMove(0);
+        }
+    }
+
+    //ESTE ES EL MOVEMENTE SIN NETWORK QUE NADA BIEN
+    //public void MovePlayer()
+    public void MovePlayer(float xAxis)
+    {
+        //float horizontal = Input.GetAxisRaw("Horizontal");
+        //float vertical = Input.GetAxisRaw("Vertical");
+
+        /*
+        //ESTO NO FUNCIONA ASI
+        float horizontal = INetworkInput.GetAxisRaw("Horizontal");
+        float vertical = INetworkInput.GetAxisRaw("Vertical");
+        
+        */
+
+        //TENGO QUE ALTERAR TODO EL TEMA DEL MOVIMIENTO PORQUE NO FUNCA
         //Vector3 inputLocal = new Vector3(horizontal, 0, vertical);
-        Vector3 inputLocal = new Vector3(horizontal, 0, 0);
+        Vector3 inputLocal = new Vector3(xAxis, 0, 0);
 
         Vector3 movement = transform.TransformDirection(inputLocal);
 
-        if (_cantMove == false) _rb.velocity = movement * _currentSpeed + new Vector3(0, _rb.velocity.y, 0);
+        //if (_cantMove == false) _rb.velocity = movement * _currentSpeed + new Vector3(0, _rb.velocity.y, 0);
+        if (_cantMove == false) _rb.Rigidbody.velocity = movement * _currentSpeed + new Vector3(0, _rb.Rigidbody.velocity.y, 0);
 
+        
         //Vector3 direccionMovimiento = new Vector3(horizontal, 0f, vertical).normalized;
         //rb.AddForce(direccionMovimiento * currentSpeed, ForceMode.Force);
 
-        if (_rb.velocity.magnitude > _maxSpeed)
+        if (_rb.Rigidbody.velocity.magnitude > _maxSpeed)
         {
-            _rb.velocity = _rb.velocity.normalized * _maxSpeed;
-        }
+            _rb.Rigidbody.velocity = _rb.Rigidbody.velocity.normalized * _maxSpeed;
+        }        
     }
 
     public void Jump()
     {
-        _rb.AddForce(Vector3.up * _jumpForce, ForceMode.Impulse);
+        //_rb.Rigidbody.AddForce(Vector3.up * _jumpForce, ForceMode.Impulse);
+        _rb.Rigidbody.AddForce(Vector3.up * _jumpForce, ForceMode.VelocityChange);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_TakeDamage(int dmg)
+    {
+        Local_TakeDamage(dmg);
+    }
+
+    void Local_TakeDamage(int dmg)
+    {
+        _life -= dmg;
+        if (_life <= 0)
+            Death();
+    }
+
+    private void Death()
+    {
+        Debug.Log($"Mori :(");
+
+        GameManager.Instance.RPC_Defeat(Runner.LocalPlayer);
+
+        Runner.Despawn(Object);
     }
 
     public void Grounded()
@@ -147,7 +253,7 @@ public class Player : Entity
 
     public void NewGravity()
     {
-        _rb.AddForce(Physics.gravity * _gravityMultiplier, ForceMode.Acceleration);
+        _rb.Rigidbody.AddForce(Physics.gravity * _gravityMultiplier, ForceMode.Acceleration);
     }
 
     private void OnDrawGizmos()

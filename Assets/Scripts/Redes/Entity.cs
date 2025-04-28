@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
-//using Fusion.Addons.Physics;
+using Fusion.Addons.Physics;
 
 
-public class Entity : MonoBehaviour, IDamageable
-//public class Entity : NetworkBehaviour, IDamageable
+//public class Entity : MonoBehaviour, IDamageable
+public class Entity : NetworkBehaviour, IDamageable
 {
-    //[SerializeField] protected NetworkRigidbody3D _rb;
-    [SerializeField] protected Rigidbody _rb;
+    [SerializeField] protected NetworkRigidbody3D _rb;
+    //[SerializeField] protected Rigidbody _rb;
 
 
     [Header("Life")]
@@ -21,7 +21,7 @@ public class Entity : MonoBehaviour, IDamageable
     public float MaxLife
     {
         get { return _maxLife; }
-        set { _maxLife = value; }
+        set { _maxLife = value; }        
     }
 
     public float Life
