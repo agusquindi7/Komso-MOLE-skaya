@@ -79,13 +79,16 @@ public class Player : Entity
 
 
         //CODIGO QUE ANDABA BIEN SIN NETWORK
-       // Grounded();
-       //if (Input.GetKeyDown(codeJump) && _isGrounded == true) Jump();        
+        // Grounded();
+        //if (Input.GetKeyDown(codeJump) && _isGrounded == true) Jump();        
     }
 
     //protected void FixedUpdate()
     public override void FixedUpdateNetwork()
     {
+        if (!HasStateAuthority)
+            return;
+
         //MOVE QUE ANDABA BIEN SIN NEWTWORK
         //NewGravity();
         //MovePlayer();
@@ -135,6 +138,7 @@ public class Player : Entity
 
     void Movement(float xAxis)
     {
+
         if (xAxis != 0)
         {
             transform.forward = Vector3.right * Mathf.Sign(xAxis);
@@ -149,7 +153,7 @@ public class Player : Entity
                 _rb.Rigidbody.velocity = velocity;
             }
 
-            OnMove(xAxis);
+            OnMove?.Invoke(xAxis);
         }
         else
         {
@@ -158,7 +162,7 @@ public class Player : Entity
 
             _rb.Rigidbody.velocity = velocity;
 
-            OnMove(0);
+            OnMove?.Invoke(0);
         }
     }
 

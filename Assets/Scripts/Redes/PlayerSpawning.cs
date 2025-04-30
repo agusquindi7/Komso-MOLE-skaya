@@ -17,7 +17,7 @@ public class PlayerSpawning : SimulationBehaviour, IPlayerJoined
     {
         var playersCount = Runner.SessionInfo.PlayerCount;
 
-        if (_initialized && playersCount >= 2)
+        if (_initialized && playersCount >= 1)
         {
             CreatePlayer(0);
             return;
@@ -26,7 +26,7 @@ public class PlayerSpawning : SimulationBehaviour, IPlayerJoined
         //Si el cliente que entro, es el mismo cliente donde corre este codigo, entonces:
         if (player == Runner.LocalPlayer)
         {
-            if (playersCount < 2)
+            if (playersCount < 1)
                 _initialized = true;
             else
             {
