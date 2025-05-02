@@ -1,33 +1,58 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Fusion;
+using System;
 
-public class PlayerShoot : MonoBehaviour
+public class PlayerShoot : NetworkBehaviour
 {
     public Transform spawnerEmpty;
     public Transform spawnerBullet;
     public GameObject bullet;
-    public float cdMax = 2f;
+    public float cdMax;
     public float cd;
-    public KeyCode keyShoot = KeyCode.Mouse0;
+    public KeyCode keyShoot;
 
+    private bool isShooting;
 
-    void Update()
+    public void Update()
     {
+        if (!HasStateAuthority) return;
+
         RotateSpawner();
-        if (Input.GetKeyDown(keyShoot))
+        if (Input.GetMouseButtonDown(0))
         {
             if (cd >= cdMax)
             {
-                Instantiate(bullet, spawnerBullet.position, spawnerBullet.rotation);
-
+                isShooting = true;
+                Debug.Log("Aprete Click");
                 cd = 0;
             }
         }
 
-        cd += Mathf.Clamp(Time.deltaTime, 0, 3);
+        cd += Mathf.Clamp(Time.deltaTime, 0, cdMax);
 
     }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (isShooting)
+        {
+            Shoot();
+            isShooting = false;
+        }
+    }
+
+    private void Shoot()
+    {
+        Runner.Spawn(bullet, spawnerBullet.position, spawnerBullet.rotation);
+    }
+
+    //[Rpc(RpcSources.StateAuthority, RpcTargets.StateAuthority)]
+    //private void RPC_SpawnBullet(Vector3 position, Quaternion rotation)
+    //{
+    //    Runner.Spawn(bullet, position, rotation);
+    //}
 
     public void RotateSpawner()
     {
@@ -35,11 +60,6 @@ public class PlayerShoot : MonoBehaviour
         //Vector2 dir = new Vector2(mousePos.x, mousePos.y);
 
         //transform.rotation = Quaternion.Euler(0f, 0f, angle);
-
-
-
-
-
 
         //Plane plane = new Plane(Vector3.forward, new Vector3(0, 0, spawnerEmpty.position.z));
 

@@ -2,33 +2,62 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
+using Fusion;
+using Fusion.Addons.Physics;
 
 [RequireComponent(typeof(Rigidbody))]
-public class BulletRicochet : MonoBehaviour 
+public class BulletRicochet : NetworkBehaviour
 {
     [SerializeField] private float _speed = 20f;
-    [SerializeField] private Rigidbody _rb;
+    //[SerializeField] NetworkRigidbody3D _rb;
     [SerializeField] private Vector3 _dir;
     [SerializeField] private string _newTag;
     [SerializeField] private int _maxWallCount = 3;
     [SerializeField] private int _wallCount;
-    
+
+    //[SerializeField] private Collision collision;
+    //[SerializeField] bool hasToBounce;
     //public VisualEffect sparksPrefab;
 
-    void Start()
+    public override void Spawned()
     {
-        //rb = GetComponent<Rigidbody>();
+        //GetComponent<NetworkRigidbody3D>().Rigidbody.AddForce(transform.forward * _speed, ForceMode.VelocityChange);
         //rb.velocity = transform.forward * speed;
         _dir = transform.forward;
     }
 
+    //public override void FixedUpdateNetwork()
+    //{
+    //    if (hasToBounce)
+    //        Ricochet();
+    //}
+
+    //void Ricochet()
+    //{
+    //    _dir = Vector3.Reflect(_dir, collision.GetContact(0).normal);
+    //    hasToBounce = false;
+    //}
+
+    public override void FixedUpdateNetwork()
+    {
+        if (Object.HasStateAuthority)
+        {
+            transform.position += _dir * Runner.DeltaTime * _speed;
+        }
+    }
+
     void OnCollisionEnter(Collision collision)
     {
+        if (!Object.HasStateAuthority)
+            return;
+
         // solo rebota contra objetos etiquetados como "Wall", puedo hacerlo con mas pero no creo. a lo sumo sumo podria hacer con una habilidad en cadena para que vaya al siguiente enemigo y eso seria con el trigger
         if (collision.gameObject.CompareTag("Wall"))
         {
+            //hasToBounce = true;
             Debug.LogWarning("CHOCO CON UNA PARED");
-            
+            //this.collision = collision;
+
             //// Tomamos el primer punto de contacto
             ////ContactPoint contact = collision.contacts[0];
 
@@ -47,20 +76,25 @@ public class BulletRicochet : MonoBehaviour
 
             //ANTES PEGABA CON ALGUNAS SUPERFICIES Y SE IBA A OTRA LADO O COPIABA SU NORMAL EN VEZ DE REBOTAR. YA NO
 
+            Vector3 normal = collision.GetContact(0).normal;
+            _dir = Vector3.Reflect(_dir, normal);
 
+            //_dir = Vector3.Reflect(_dir, collision.GetContact(0).normal);
 
-            _dir = Vector3.Reflect(_dir, collision.GetContact(0).normal);
             //sparksPrefab.SendEvent("Burst");
         }
     }
 
-    public void FixedUpdate()
-    {
-        _rb.velocity = _dir * _speed;
-    }
+    //public override void FixedUpdateNetwork()
+    //{
+    //    _rb.velocity = _dir * _speed;
+    //}
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!HasStateAuthority)
+            return;
+
         IDamageable damageable = other.GetComponent<IDamageable>(); // Get the IDamageable component
         if (damageable != null)
         {
