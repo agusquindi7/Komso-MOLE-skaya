@@ -110,11 +110,13 @@ public class Player : Entity
     public override void TakeDamage(float dmg)
     {
         Life -= dmg; // se utiliza el setter de la propiedad Life para aplicar la reduccion
-        Debug.Log("vida restante Player: " + Life);
+        Debug.Log($"vida restante {gameObject} ({HasStateAuthority}): " + Life);
 
         if (Life <= 0)
         {
             Debug.Log("Player murio");
+            //AGUS ADD-ON
+            Death();
         }
 
         UpdateUI();
@@ -218,6 +220,7 @@ public class Player : Entity
             Death();
     }
 
+    //OLD DEATH
     private void Death()
     {
         Debug.Log($"Mori :(");

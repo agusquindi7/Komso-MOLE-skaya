@@ -10,6 +10,7 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private GameObject _loseImage;
     private List<PlayerRef> _players = new List <PlayerRef>();
     public static GameManager Instance { get; private set; }
+
     private void Awake()
     {
         Instance = this;
@@ -35,7 +36,7 @@ public class GameManager : NetworkBehaviour
     {
         if (player == Runner.LocalPlayer)
         {
-            Defeat();
+            Win();
         }
 
         RemoveFromList(player);
@@ -48,7 +49,7 @@ public class GameManager : NetworkBehaviour
     [Rpc]
     void RPC_Win([RpcTarget] PlayerRef player)
     {
-        Win();
+        Defeat();
     }
 
     void Win()

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 
 [RequireComponent(typeof(Rigidbody))]
-public class BulletRicochet : MonoBehaviour
+public class BulletRicochet : MonoBehaviour 
 {
     [SerializeField] private float _speed = 20f;
     [SerializeField] private Rigidbody _rb;

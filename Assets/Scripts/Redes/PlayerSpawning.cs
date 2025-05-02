@@ -8,36 +8,40 @@ public class PlayerSpawning : SimulationBehaviour, IPlayerJoined
 {
     public GameObject playerPrefab;
 
+    private int playersCount;
+
     [SerializeField] private Transform[] _spawnTransforms;
 
-    private bool _initialized;
+    //private bool _initialized;
 
     //Se ejecuta por CADA cliente conectado
     public void PlayerJoined(PlayerRef player)
     {
-        var playersCount = Runner.SessionInfo.PlayerCount;
+        playersCount = Runner.SessionInfo.PlayerCount;
 
-        if (_initialized && playersCount >= 1)
+        Debug.Log("Jugador conectado. Total: " + playersCount);
+
+        // Solo el Host (Server) controla el spawn
+        if (Runner.IsSharedModeMasterClient && playersCount == 2)
         {
-            CreatePlayer(0);
-            return;
+            Debug.Log("¡Hay 2 jugadores, spawneando!");
+
+            // Spawnea a ambos jugadores
+            SpawnAllPlayers();
         }
+    }
 
-        //Si el cliente que entro, es el mismo cliente donde corre este codigo, entonces:
-        if (player == Runner.LocalPlayer)
+    private void SpawnAllPlayers()
+    {
+        for (int i = 0; i < playersCount; i++)
         {
-            if (playersCount < 1)
-                _initialized = true;
-            else
-            {
-                CreatePlayer(playersCount - 1);
-            }
+            CreatePlayer(i);
         }
     }
 
     void CreatePlayer(int spawnPointIndex)
     {
-        _initialized = false;
+        //_initialized = false;
 
         var newPosition = _spawnTransforms[spawnPointIndex].position;
         var newRotation = _spawnTransforms[spawnPointIndex].rotation;
