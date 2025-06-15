@@ -180,7 +180,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: d6efe8054bdf81749a8618900a675af0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -284,11 +284,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 15
-  _rb: {fileID: 146281382797541090}
   _dir: {x: 0, y: 0, z: 0}
   _newTag: Player
   _maxWallCount: 5
   _wallCount: 0
+  networkBullet: {fileID: 982984226775097060}
 --- !u!96 &4392955972477312666
 TrailRenderer:
   serializedVersion: 3

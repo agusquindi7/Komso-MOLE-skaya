@@ -17,7 +17,9 @@ public class PlayerShoot : NetworkBehaviour
 
     public void Update()
     {
-        if (!HasStateAuthority) return;
+        //if (!HasStateAuthority) return;
+        //Agus ADDON
+        if (!Object.HasInputAuthority) return;
 
         RotateSpawner();
         if (Input.GetMouseButtonDown(0))
@@ -45,7 +47,25 @@ public class PlayerShoot : NetworkBehaviour
 
     private void Shoot()
     {
-        Runner.Spawn(bullet, spawnerBullet.position, spawnerBullet.rotation);
+        //Runner.Spawn(bullet, spawnerBullet.position, spawnerBullet.rotation, Object.InputAuthority);
+        //Agus ADDON
+        if (Object.HasStateAuthority)
+        {
+            // Si soy el host, spawneo directamente
+            Runner.Spawn(bullet, spawnerBullet.position, spawnerBullet.rotation, Object.InputAuthority);
+        }
+        else
+        {
+            // Si soy un cliente, pido al host que spawnee por mí
+            RPC_RequestBullet(spawnerBullet.position, spawnerBullet.rotation, Object.InputAuthority);
+        }
+    }
+
+    //Agus ADDON
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_RequestBullet(Vector3 position, Quaternion rotation, PlayerRef owner)
+    {
+        Runner.Spawn(bullet, position, rotation, owner); // Spawn la bala con autoridad del jugador que disparó
     }
 
     //[Rpc(RpcSources.StateAuthority, RpcTargets.StateAuthority)]

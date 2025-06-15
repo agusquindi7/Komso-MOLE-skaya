@@ -6,9 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/TestRedes.unity
+    path: Assets/Scenes/RicochetArena.unity
     guid: 73b0e91e5c656f549bc480c915c42e9b
   - enabled: 0
     path: Assets/Scenes/FPSModel.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 90d78cdac3d10fc428fb93732f5053b9
+  - enabled: 1
+    path: Assets/Scenes/Game.unity
+    guid: b30e4d65e82236d43bf87a1336f328f7
   m_configObjects: {}

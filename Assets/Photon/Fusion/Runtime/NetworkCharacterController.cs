@@ -35,7 +35,7 @@ namespace Fusion {
   [RequireComponent(typeof(CharacterController))]
   [NetworkBehaviourWeaved(NetworkCCData.WORDS)]
   // ReSharper disable once CheckNamespace
-  public sealed unsafe class NetworkCharacterController : NetworkTRSP, INetworkTRSPTeleport, IBeforeAllTicks, IAfterAllTicks, IBeforeCopyPreviousState {
+  public unsafe class NetworkCharacterController : NetworkTRSP, INetworkTRSPTeleport, IBeforeAllTicks, IAfterAllTicks, IBeforeCopyPreviousState {
     new ref NetworkCCData Data => ref ReinterpretState<NetworkCCData>();
 
     [Header("Character Controller Settings")]
@@ -48,6 +48,8 @@ namespace Fusion {
 
     Tick                _initial;
     CharacterController _controller;
+
+    public CharacterController Controller => _controller;
 
     public Vector3 Velocity {
       get => Data.Velocity;
@@ -65,8 +67,8 @@ namespace Fusion {
       _controller.enabled = true;
     }
 
-
-    public void Jump(bool ignoreGrounded = false, float? overrideImpulse = null) {
+        //modifique aca para que el salto sea infinito como en el juego original
+    public void Jump(bool ignoreGrounded = true, float? overrideImpulse = null) {
       if (Data.Grounded || ignoreGrounded) {
         var newVel = Data.Velocity;
         newVel.y      += overrideImpulse ?? jumpImpulse;
@@ -74,7 +76,7 @@ namespace Fusion {
       }
     }
 
-    public void Move(Vector3 direction) {
+    public virtual void Move(Vector3 direction) {
       var deltaTime    = Runner.DeltaTime;
       var previousPos  = transform.position;
       var moveVelocity = Data.Velocity;
