@@ -25,7 +25,9 @@ public class NetworkPlayer : NetworkBehaviour
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
         _myNickname = NicknameHandler.Instance.AddNickname(this);
-        
+
+        //GameManager.Instance.AddToList(this);
+
         if (Object.HasInputAuthority)
         {
             Local = this;

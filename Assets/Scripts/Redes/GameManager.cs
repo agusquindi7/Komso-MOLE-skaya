@@ -8,15 +8,43 @@ public class GameManager : NetworkBehaviour
 {
     [SerializeField] private GameObject _winImage;
     [SerializeField] private GameObject _loseImage;
+    [SerializeField] private GameObject waitImage;
     private List<PlayerRef> _players = new List <PlayerRef>();
     public static GameManager Instance { get; private set; }
 
-    private void Awake()
+    public override void Spawned()
     {
-        Instance = this;
+        Debug.Log($"GameManager Spawned. StateAuthority: {Object.StateAuthority} | LocalPlayer: {Runner.LocalPlayer}");
+
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+        //Debug.Log(Runner.SessionInfo.PlayerCount);
     }
 
-    public void AddToList(Player player)
+    private void Update()
+    {
+        if (Runner == null) return;
+
+        if (Runner.SessionInfo.PlayerCount < 1) //PARA TESTEAR LO PUSE EN 1 PERO VA EN < 2
+        {
+            waitImage.SetActive(true);
+            Time.timeScale = 0;
+        }
+        else
+        {
+            waitImage.SetActive(false);
+            Time.timeScale = 1;
+        }
+    }
+
+    public void AddToList(NetworkPlayer player)
     {
         var playerRef = player.Object.StateAuthority;
 
@@ -31,25 +59,30 @@ public class GameManager : NetworkBehaviour
         _players.Remove(player);
     }
 
-    [Rpc]
-    public void RPC_Defeat(PlayerRef player)
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RPC_Defeat(PlayerRef defeatedPlayer)
     {
-        if (player == Runner.LocalPlayer)
+        Debug.Log($"Player {defeatedPlayer} fue derrotado. Yo soy {Runner.LocalPlayer}");
+
+        if (Runner.LocalPlayer == defeatedPlayer)
         {
+            Debug.Log("Mostrando DERROTA");
+            Defeat();
+        }
+        else
+        {
+            Debug.Log("Mostrando VICTORIA");
             Win();
         }
 
-        RemoveFromList(player);
-
-        if (_players.Count == 1 && HasStateAuthority)
-            RPC_Win(_players[0]);
+        RemoveFromList(defeatedPlayer);
     }
 
     //[RpcTarget] El llamado del RPC va a ir dirigido a ese jugador
     [Rpc]
     void RPC_Win([RpcTarget] PlayerRef player)
     {
-        Defeat();
+        Win();
     }
 
     void Win()
@@ -61,4 +94,5 @@ public class GameManager : NetworkBehaviour
     {
         _loseImage.SetActive(true);
     }
+
 }

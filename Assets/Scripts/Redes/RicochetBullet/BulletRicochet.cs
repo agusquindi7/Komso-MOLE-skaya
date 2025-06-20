@@ -26,6 +26,14 @@ public class BulletRicochet : NetworkBehaviour
         //GetComponent<NetworkRigidbody3D>().Rigidbody.AddForce(transform.forward * _speed, ForceMode.VelocityChange);
         //rb.velocity = transform.forward * speed;
         _dir = transform.forward;
+
+        if (Runner.IsClient && !HasStateAuthority)
+        {
+            Runner.SetIsSimulated(GetComponent<NetworkObject>(), false);
+        }
+
+        //if (Runner.IsClient && !HasStateAuthority)
+        //    Runner.SetIsSimulated(Object, true);
     }
 
     //public override void FixedUpdateNetwork()
@@ -57,6 +65,7 @@ public class BulletRicochet : NetworkBehaviour
         {
             Debug.LogWarning("CHOCO CON UNA PARED");
 
+            MaxCount();
             Vector3 normal = collision.GetContact(0).normal;
             _dir = Vector3.Reflect(_dir, normal);
         }
@@ -105,43 +114,81 @@ public class BulletRicochet : NetworkBehaviour
     //    _rb.velocity = _dir * _speed;
     //}
 
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (!HasStateAuthority)
+    //        return;
+
+    //    IDamageable damageable = other.GetComponent<IDamageable>(); // Get the IDamageable component
+    //    if (damageable != null)
+    //    {
+    //        Debug.Log("bala daño a " + other);
+    //        damageable.TakeDamage(10);
+    //        Destroy(gameObject);
+    //    }
+
+    //    //ACA PUEDO HACER QUE SALGAN CHISPITAS O TOMAR A ENEMIGOS PARA BAJARLES LA VIDA, INCLUSO UN CONTADOR DE REBOTES, ASI AL 3ER REBOTE SE APAQUE LA BALA. CUANDO EL COLLIDER.COLLISION LLEGUE
+    //    //PARA GRANADA CON GRAVITY TAMBIEN PODRIA SERVIR
+    //    //O UNA MECANICA QUE SI LLEGA A UN ENEMIGO, LO INSTAKILLEE Y LE PASE LA DIRECCION DEL PROXIMO ENEMIGO Y QUE LO MANDE HACIA ESA DIRECCION. SE VIENE BALA RAYO
+
+    //    if (other.gameObject.CompareTag("Wall"))
+    //    {
+    //        Debug.LogWarning("TRIGEREO CON UNA PARED");
+    //        //sparksPrefab.Play();
+
+    //        _wallCount++;
+    //        MaxCount();
+    //    }
+
+    //    ////podria incluso hacer destruibles, o hacerlo por interface mejor
+    //    //if (other.gameObject.CompareTag(_newTag))
+    //    ////if (other.GetComponent<IDamageable>())
+    //    //{
+    //    //    Debug.LogWarning("TRIGEREO CON UN " + _newTag);        
+
+    //    //}
+    //}
+
     private void OnTriggerEnter(Collider other)
     {
-        if (!HasStateAuthority)
+        // 1) Asegurarnos de que este script esté en un NetworkObject vivo
+        if (Object == null || Runner == null)
             return;
 
-        IDamageable damageable = other.GetComponent<IDamageable>(); // Get the IDamageable component
-        if (damageable != null)
-        {
-            Debug.Log("bala daño a " + other);
-            damageable.TakeDamage(10);
-            Destroy(gameObject);
-        }
+        // 2) Solo el Host (StateAuthority) debería procesar colisiones
+        if (!Object.HasStateAuthority)
+            return;
 
-        //ACA PUEDO HACER QUE SALGAN CHISPITAS O TOMAR A ENEMIGOS PARA BAJARLES LA VIDA, INCLUSO UN CONTADOR DE REBOTES, ASI AL 3ER REBOTE SE APAQUE LA BALA. CUANDO EL COLLIDER.COLLISION LLEGUE
-        //PARA GRANADA CON GRAVITY TAMBIEN PODRIA SERVIR
-        //O UNA MECANICA QUE SI LLEGA A UN ENEMIGO, LO INSTAKILLEE Y LE PASE LA DIRECCION DEL PROXIMO ENEMIGO Y QUE LO MANDE HACIA ESA DIRECCION. SE VIENE BALA RAYO
+        // 3) Evitar otros nulls
+        if (other == null)
+            return;
 
-        if (other.gameObject.CompareTag("Wall"))
-        {
-            Debug.LogWarning("TRIGEREO CON UNA PARED");
-            //sparksPrefab.Play();
+        // 4) ¿Es un objeto de red?
+        var otherNetObj = other.GetComponent<NetworkObject>();
+        if (otherNetObj == null)
+            return;
 
-            _wallCount++;
-            MaxCount();
-        }
+        // 5) ¿Tiene LifeHandler (vida) ese objeto?
+        var lifeHandler = other.GetComponent<LifeHandler>();
+        if (lifeHandler == null)
+            return;
 
-        ////podria incluso hacer destruibles, o hacerlo por interface mejor
-        //if (other.gameObject.CompareTag(_newTag))
-        ////if (other.GetComponent<IDamageable>())
-        //{
-        //    Debug.LogWarning("TRIGEREO CON UN " + _newTag);        
-            
-        //}
+        // 6) ¿No soy yo quien disparó la bala?
+        if (otherNetObj.InputAuthority == Object.InputAuthority)
+            return;
+
+        // --- Llegamos aquí: un Host golpea a otro jugador válido ---
+        Debug.Log($"Host hace daño de {Object.InputAuthority} a {otherNetObj.InputAuthority}");
+
+        // 7) Aplicar daño y despawnear bala en red
+        lifeHandler.TakeDamage(10);
+        Runner.Despawn(Object);
     }
 
     public void MaxCount()
     {
+        _wallCount++;
+
         if (_wallCount >= _maxWallCount)
         {
             //gameObject.SetActive(false);

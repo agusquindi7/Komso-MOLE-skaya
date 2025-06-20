@@ -68,7 +68,7 @@ namespace Fusion {
     }
 
         //modifique aca para que el salto sea infinito como en el juego original
-    public void Jump(bool ignoreGrounded = true, float? overrideImpulse = null) {
+    public void Jump(bool ignoreGrounded = false, float? overrideImpulse = null) {
       if (Data.Grounded || ignoreGrounded) {
         var newVel = Data.Velocity;
         newVel.y      += overrideImpulse ?? jumpImpulse;

@@ -13,7 +13,9 @@ public class Spawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsServer)
         {
-            runner.Spawn(_playerPrefab, null, null, player);
+            Vector3 newVector = new Vector3 (UnityEngine.Random.Range(-10, 8), UnityEngine.Random.Range(8, -2), 0);
+            //PASAR BOUNDS PARA QUE SEA RANDOM LA POSICION COMO UN BR
+            runner.Spawn(_playerPrefab, newVector, null, player);
         }
     }
 

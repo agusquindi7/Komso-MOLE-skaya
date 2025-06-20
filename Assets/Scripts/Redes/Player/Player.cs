@@ -47,7 +47,6 @@ public class Player : Entity
     {
         //_rb = GetComponent<NetworkRigidbody3D>();
         _life = _maxLife;                
-        GameManager.Instance.AddToList(this);
     }
 
     /*
@@ -147,7 +146,7 @@ public class Player : Entity
     {
         Debug.Log($"Mori :(");
 
-        GameManager.Instance.RPC_Defeat(Runner.LocalPlayer);
+        //GameManager.Instance.RPC_Defeat(Runner.LocalPlayer);
 
         Runner.Despawn(Object);
     }

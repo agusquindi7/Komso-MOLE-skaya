@@ -45,4 +45,16 @@ public class NetworkCharacterControllerCustom : NetworkCharacterController
 
    
     }
+
+    //public void RotateCannon(Vector3 mouseScreen, Transform spawnerEmpty)
+    //{
+    //    mouseScreen.z = -Camera.main.transform.position.z; //anulo el eje z
+    //    Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(mouseScreen);//transformo a sistema de coordenada
+
+    //    Vector2 dir = (mouseWorld - spawnerEmpty.position).normalized;
+
+    //    float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+    //    spawnerEmpty.rotation = Quaternion.Euler(0f, 0f, angle);
+    //}
 }

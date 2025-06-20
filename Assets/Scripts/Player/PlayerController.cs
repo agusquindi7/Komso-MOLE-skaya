@@ -6,12 +6,13 @@ using UnityEngine;
 public class PlayerController : NetworkBehaviour
 {
     private NetworkCharacterControllerCustom _characterMovement;
-    private WeaponHandler _weaponHandler;
+    //[SerializeField] Transform spawnerEmpty;
+    //private WeaponHandler _weaponHandler;
     
     public override void Spawned()
     {
         _characterMovement = GetComponent<NetworkCharacterControllerCustom>();
-        _weaponHandler = GetComponent<WeaponHandler>();
+        //_weaponHandler = GetComponent<WeaponHandler>();
     }
 
     public override void FixedUpdateNetwork()
@@ -27,7 +28,12 @@ public class PlayerController : NetworkBehaviour
         {
             _characterMovement.Jump();
         }
-        
+
+        //Rotacion del cañon
+        //Vector3 mouseScreen = Input.mousePosition;
+        //if (mouseScreen.magnitude != 0)
+        //    _characterMovement.RotateCannon(mouseScreen, spawnerEmpty);
+
         //Disparo
         //if (inputs.isFirePressed)
         //{

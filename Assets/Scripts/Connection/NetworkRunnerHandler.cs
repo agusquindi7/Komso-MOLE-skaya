@@ -15,6 +15,7 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
     public event Action<List<SessionInfo>> OnSessionListUpdate = delegate { };
     
     #region Lobby
+
     public void JoinLobby()
     {
         if (_currentRunner) 
@@ -67,7 +68,7 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
             SessionName = sessionName
         });
         
-        if (!result.Ok)
+        if (!result.Ok) //Si la sesion tiene menos de 2 players no empieza
         {
             Debug.LogError($"[Custom Error] Unable to Start Game");
         }
