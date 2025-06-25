@@ -32,7 +32,7 @@ public class GameManager : NetworkBehaviour
     {
         if (Runner == null) return;
 
-        if (Runner.SessionInfo.PlayerCount < 1) //PARA TESTEAR LO PUSE EN 1 PERO VA EN < 2
+        if (Runner.SessionInfo.PlayerCount < 2) //PARA TESTEAR LO PUSE EN 1 PERO VA EN < 2
         {
             waitImage.SetActive(true);
             Time.timeScale = 0;

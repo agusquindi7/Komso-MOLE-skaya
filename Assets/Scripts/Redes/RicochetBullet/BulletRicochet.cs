@@ -151,36 +151,28 @@ public class BulletRicochet : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // 1) Asegurarnos de que este script esté en un NetworkObject vivo
         if (Object == null || Runner == null)
             return;
 
-        // 2) Solo el Host (StateAuthority) debería procesar colisiones
         if (!Object.HasStateAuthority)
             return;
 
-        // 3) Evitar otros nulls
         if (other == null)
             return;
 
-        // 4) ¿Es un objeto de red?
-        var otherNetObj = other.GetComponent<NetworkObject>();
+        var otherNetObj = other.GetComponentInParent<NetworkObject>();
         if (otherNetObj == null)
             return;
 
-        // 5) ¿Tiene LifeHandler (vida) ese objeto?
-        var lifeHandler = other.GetComponent<LifeHandler>();
+        var lifeHandler = other.GetComponentInParent<LifeHandler>();
         if (lifeHandler == null)
             return;
 
-        // 6) ¿No soy yo quien disparó la bala?
         if (otherNetObj.InputAuthority == Object.InputAuthority)
             return;
 
-        // --- Llegamos aquí: un Host golpea a otro jugador válido ---
         Debug.Log($"Host hace daño de {Object.InputAuthority} a {otherNetObj.InputAuthority}");
 
-        // 7) Aplicar daño y despawnear bala en red
         lifeHandler.TakeDamage(10);
         Runner.Despawn(Object);
     }
@@ -189,11 +181,16 @@ public class BulletRicochet : NetworkBehaviour
     {
         _wallCount++;
 
-        if (_wallCount >= _maxWallCount)
+        if (_wallCount >= _maxWallCount && gameObject != null)
         {
-            //gameObject.SetActive(false);
-            //Agus ADDON
-            Runner.Despawn(Object);
+            if (Object != null && Object.IsValid && Runner != null)
+            {
+                Runner.Despawn(Object);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }

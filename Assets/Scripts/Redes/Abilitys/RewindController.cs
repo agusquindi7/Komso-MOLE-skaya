@@ -1,124 +1,147 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Fusion;
 
-public class RewindController : MonoBehaviour
+public class RewindController : NetworkBehaviour
 {
     public TrailRenderer trail;
 
-    [Header("Valores")]
-    [Tooltip("True: Instant TP; False: Rewind")]
+    [Header("Ajustes")]
     public bool useInstantTeleport = true;
-    public KeyCode abilityTP= KeyCode.R;
-    [Tooltip("Duracion del rewind")]
+    public KeyCode abilityTP = KeyCode.R;
     public float rewindDuration = 5f;
-    [Tooltip("Velocidad para reproducir los mementos (1 = tiempo real)")]
     public float playbackSpeed = 1f;
-    public float cdAbility = 5f;
 
+    private NetworkCharacterController _ncc;
+    private float _time;
 
-    //Originator(el objeto que tiene estado) toma su propia posición(transform.position) y crea un “snapshot” (memento) cada vez que quiera registrar un estado
-    //Originator: gestiona su propio estado y crea/restaura mementos
-    private class PositionOriginator
+    // Rewind
+    private bool _rewindActive = false;
+    private List<Vector3> _rewindPositions = new();
+    private int _rewindIndex;
+
+    private PositionOriginator originator = new();
+    private Caretaker caretaker = new();
+
+    private void Awake()
     {
-        private Vector3 _state; //creo un estado
-        public void SetState(Vector3 pos) => _state = pos; //le seteo el vector3 de la posicion
-        public Memento CreateMemento() => new Memento(_state); //creo un mememnto con ese estado
-        public void RestoreMemento(Memento m) => _state = m.SavedState; //
-        public Vector3 GetState() => _state;
+        _ncc = GetComponent<NetworkCharacterController>();
     }
 
-    // Memento: snapshot de posicion
+    public override void FixedUpdateNetwork()
+    {
+        _time = Runner.Tick * Runner.DeltaTime;
+
+        // INPUT: solo el dueño detecta
+        if (HasInputAuthority && Input.GetKeyDown(abilityTP))
+        {
+            if (useInstantTeleport)
+                RPC_RequestInstantTeleport();
+            else
+                RPC_RequestRewind();
+        }
+
+        // REWIND activo (solo Host lo ejecuta)
+        if (HasStateAuthority && _rewindActive)
+        {
+            if (_rewindIndex >= 0)
+            {
+                Vector3 pos = _rewindPositions[_rewindIndex];
+                if (!float.IsNaN(pos.x)) _ncc.Teleport(pos);
+                _rewindIndex--;
+            }
+            else
+            {
+                _rewindActive = false;
+            }
+            return;
+        }
+
+        // Guardar estado (solo Host)
+        if (HasStateAuthority)
+        {
+            originator.SetState(transform.position);
+            caretaker.Add(originator.CreateMemento(), _time);
+            caretaker.TrimOlderThan(_time - rewindDuration);
+        }
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_RequestInstantTeleport()
+    {
+        Vector3 rewindPos = GetStateAt(_time - rewindDuration);
+        if (!float.IsNaN(rewindPos.x)) _ncc.Teleport(rewindPos);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_RequestRewind()
+    {
+        StartRewindPlayback();
+    }
+
+    private void StartRewindPlayback()
+    {
+        _rewindActive = true;
+        float cutoff = _time - rewindDuration;
+
+        var clip = caretaker.History.FindAll(e => e.time >= cutoff && e.time <= _time);
+        clip.Sort((a, b) => a.time.CompareTo(b.time));
+
+        _rewindPositions.Clear();
+        foreach (var entry in clip)
+            _rewindPositions.Add(entry.m.SavedState);
+
+        _rewindIndex = _rewindPositions.Count - 1;
+    }
+
+    private Vector3 GetStateAt(float targetTime)
+    {
+        var history = caretaker.History;
+
+        if (history.Count < 2)
+            return transform.position;
+
+        (Memento m, float time) prev = history[0];
+
+        foreach (var entry in history)
+        {
+            if (entry.time >= targetTime)
+            {
+                float denominator = entry.time - prev.time;
+                if (Mathf.Approximately(denominator, 0f))
+                    return prev.m.SavedState;
+
+                float t = (targetTime - prev.time) / denominator;
+                Vector3 result = Vector3.Lerp(prev.m.SavedState, entry.m.SavedState, t);
+
+                if (float.IsNaN(result.x)) return prev.m.SavedState;
+                return result;
+            }
+
+            prev = entry;
+        }
+
+        return history[^1].m.SavedState;
+    }
+
+    // MEMENTO PATTERN
+    private class PositionOriginator
+    {
+        private Vector3 _state;
+        public void SetState(Vector3 pos) => _state = pos;
+        public Memento CreateMemento() => new Memento(_state);
+    }
+
     private class Memento
     {
         public Vector3 SavedState { get; }
         public Memento(Vector3 state) { SavedState = state; }
     }
 
-    //Caretaker (quien guarda snapshots) mantiene una lista de pares (memento, timestamp) y la poda para descartar entradas más antiguas que 5 s
-    // Caretaker: almacena mementos con timestamps
     private class Caretaker
     {
-        public List<(Memento m, float time)> History { get; } = new List<(Memento, float)>(); //creo una lista HISTORIAL del MEMENTO (posicion) y tiempo, una tupla 
-        public void Add(Memento m, float t) => History.Add((m, t)); //agrego a la lista del historial un elemento
-        public void TrimOlderThan(float cutoff) //metodo para elminar historial si el tiempo transcurrido es mayor al limite establecido
-        {
-            History.RemoveAll(entry => entry.time < cutoff);
-        }
-    }
-
-    // creo los scripts en este mismo y de paso tengo una referencia (?
-    private PositionOriginator originator = new PositionOriginator();
-    private Caretaker caretaker = new Caretaker();
-
-    void Update()
-    {
-        // guardo el estado actual en cada frame. seteo y agrego
-        originator.SetState(transform.position);
-        caretaker.Add(originator.CreateMemento(), Time.time);
-        caretaker.TrimOlderThan(Time.time - rewindDuration); //si el tiempo es superior al tiempo de rewind lo elimino de la lista
-
-        if (Input.GetKeyDown(abilityTP))
-        {
-            if (useInstantTeleport) // hacer tp a donde estaba hace X segundos
-            {
-                float targetTime = Time.time - rewindDuration;
-                Vector3 pos = GetStateAt(targetTime);
-                transform.position = pos;
-            }
-            else //recorrido de mementos
-            {
-                
-                StartCoroutine(PlaybackMementos());
-            }
-        }
-    }  
-    private Vector3 GetStateAt(float targetTime) //busco la pos hace X segundos
-    {
-        var history = caretaker.History; //guardo el historial de la lista en una var asi cada vez que entra al metodo la reuso
-        if (history.Count == 0) return transform.position; //por las dudas ya que una vez aprete rapido y crasheo al no tener elementos guardados
-                
-        (Memento m, float time) prev = history[0]; //la primera posicion del historial
-        foreach (var entry in history)
-        {
-            if (entry.time >= targetTime)
-            {
-                // Interpolar entre prev y entry
-                float t = (targetTime - prev.time) / (entry.time - prev.time);
-                Vector3 a = prev.m.SavedState;
-                Vector3 b = entry.m.SavedState;
-                //porque hace una interpolacion? para evitar saltos bruscos, buscar una pos por tiempo no es 100% exacto y depende de la pc de c/u. lerp te deja un resultado mas limpio que un punto exacto
-                return Vector3.Lerp(a, b, t);
-            }
-            prev = entry;
-        }
-        // si no encuentra entry >= targetTime, devuelve el primer o ultimo elemento agregado
-        return history[0].time >= targetTime ? history[0].m.SavedState : history[history.Count - 1].m.SavedState;
-    }
-
-    private IEnumerator PlaybackMementos()
-    {
-        float startTime = Time.time;
-        float cutoff = startTime - rewindDuration;
-        var history = caretaker.History;
-
-        // filtra los mementos entre cutoff y ahora y los guardo en una lista
-        List<(Memento m, float time)> clip = history.FindAll(e => e.time >= cutoff && e.time <= startTime);
-        // ordeno por tiempo ascendente, luego recorro al reves en un for
-        clip.Sort((a, b) => a.time.CompareTo(b.time));
-
-        for (int i = clip.Count - 1; i >= 0; i--)
-        {
-            var entry = clip[i];
-            originator.RestoreMemento(entry.m);
-            transform.position = originator.GetState();
-
-            // Esperar el delta de tiempo entre este y el anterior, ajustado por playbackSpeed
-            if (i > 0)
-            {
-                float delta = (clip[i].time - clip[i - 1].time) / playbackSpeed;
-                yield return new WaitForSeconds(delta);
-            }
-        }
+        public List<(Memento m, float time)> History { get; } = new();
+        public void Add(Memento m, float t) => History.Add((m, t));
+        public void TrimOlderThan(float cutoff) => History.RemoveAll(entry => entry.time < cutoff);
     }
 }

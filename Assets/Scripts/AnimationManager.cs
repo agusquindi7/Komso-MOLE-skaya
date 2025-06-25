@@ -1,33 +1,45 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using Fusion;
 
-public class AnimationManager : MonoBehaviour
+public class AnimationManager : NetworkBehaviour
 {
     [SerializeField] Animator anim;
     [SerializeField] float raycastDistance;
+    [SerializeField] NetworkObject parent;
+    [SerializeField] NetworkMecanimAnimator netAnimator;
 
-    private void Update()
+    public override void FixedUpdateNetwork()
     {
-        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, raycastDistance);
-        anim.SetBool("isGrounded", isGrounded);
-        Debug.Log(isGrounded);
+        if (!HasInputAuthority) return;
 
-        if (isGrounded) //SI ESTOY EN EL PISO CHEQUEA SI ESTOY CORRIENDO
-        {
-            if (Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0)
-            {
-                anim.SetBool("isRunning", true);
-            }
-            else anim.SetBool("isRunning", false);
-        }
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, raycastDistance);
+        RPC_SetBool("isGrounded", isGrounded);
+
+        float h = Input.GetAxisRaw("Horizontal");
+        bool isRunning = isGrounded && Mathf.Abs(h) > 0.1f;
+        RPC_SetBool("isRunning", isRunning);
 
         if (isGrounded && Input.GetKeyDown(KeyCode.W))
-            anim.SetTrigger("Jump");
+        {
+            RPC_SetTrigger("Jump");
+        }
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+    void RPC_SetBool(string param, bool value)
+    {
+        anim.SetBool(param, value);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+    void RPC_SetTrigger(string triggerName)
+    {
+        anim.SetTrigger(triggerName);
+        netAnimator.SetTrigger(triggerName); // Trigger sí necesita replicación manual
     }
 
     private void OnDrawGizmos()
     {
-        Gizmos.DrawRay(transform.position, new Vector3(0,-1 * raycastDistance,0));
+        Gizmos.DrawRay(transform.position, Vector3.down * raycastDistance);
     }
 }

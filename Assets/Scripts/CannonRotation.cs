@@ -5,6 +5,7 @@ using Fusion;
 public class CannonRotation : NetworkBehaviour
 {
     [SerializeField] private Transform spawnerEmpty;
+    [SerializeField, Range(0, 180f)] float angleOffsetZ;
 
     public override void Spawned()
     {
@@ -25,7 +26,7 @@ public class CannonRotation : NetworkBehaviour
 
             Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(mouseScreen);
             Vector2 dir = (mouseWorld - spawnerEmpty.position).normalized;
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - angleOffsetZ;
 
             RPC_RotateCannon(angle);
         }

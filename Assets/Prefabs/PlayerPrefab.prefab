@@ -215,6 +215,7 @@ MonoBehaviour:
   - {fileID: 5169070940756875894}
   - {fileID: 5720917388503809341}
   - {fileID: 6546549107579428722}
+  - {fileID: 280319952573963116}
   - {fileID: 6530615438040728412}
   - {fileID: 6386054307921687433}
   ForceRemoteRenderTimeframe: 0
@@ -299,7 +300,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5ed7bfb32ee65f4db22c0fa1e7e151f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnerEmpty: {fileID: 272117346440693091}
 --- !u!114 &5720917388503809341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -493,6 +493,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnerEmpty: {fileID: 272117346440693091}
+  angleOffsetZ: 0
 --- !u!1 &1441121218756356696
 GameObject:
   m_ObjectHideFlags: 0

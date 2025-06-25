@@ -13,7 +13,7 @@ public class Spawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsServer)
         {
-            Vector3 newVector = new Vector3 (UnityEngine.Random.Range(-10, 8), UnityEngine.Random.Range(8, -2), 0);
+            Vector3 newVector = new Vector3 (UnityEngine.Random.Range(-10, 10), UnityEngine.Random.Range(-6, 12), 0);
             //PASAR BOUNDS PARA QUE SEA RANDOM LA POSICION COMO UN BR
             runner.Spawn(_playerPrefab, newVector, null, player);
         }

@@ -601,18 +601,6 @@ MonoBehaviour:
   _maxLife: 100
   _life: 0
   mySlider: {fileID: 278689930361478805}
-  _trail: {fileID: 2322645131451987766}
-  _currentSpeed: 0
-  _baseSpeed: 10
-  _maxSpeed: 30
-  _rayLenght: 1.1
-  _jumpForce: 7.5
-  _gravityMultiplier: 2
-  _isGrounded: 0
-  _cantMove: 0
-  Ability: 114
-  codeJump: 32
-  codeAttack: 316
 --- !u!114 &6686967516653976392
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -630,6 +618,7 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
+  - {fileID: 790644563103892261}
   - {fileID: 2101711191087704574}
   - {fileID: 856085884620019052}
   - {fileID: 406955463190911316}
