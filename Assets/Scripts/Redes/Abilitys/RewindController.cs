@@ -32,7 +32,6 @@ public class RewindController : NetworkBehaviour
     {
         _time = Runner.Tick * Runner.DeltaTime;
 
-        // INPUT: solo el dueño detecta
         if (HasInputAuthority && Input.GetKeyDown(abilityTP))
         {
             if (useInstantTeleport)
@@ -41,7 +40,6 @@ public class RewindController : NetworkBehaviour
                 RPC_RequestRewind();
         }
 
-        // REWIND activo (solo Host lo ejecuta)
         if (HasStateAuthority && _rewindActive)
         {
             if (_rewindIndex >= 0)
@@ -57,7 +55,6 @@ public class RewindController : NetworkBehaviour
             return;
         }
 
-        // Guardar estado (solo Host)
         if (HasStateAuthority)
         {
             originator.SetState(transform.position);
@@ -124,7 +121,7 @@ public class RewindController : NetworkBehaviour
         return history[^1].m.SavedState;
     }
 
-    // MEMENTO PATTERN
+
     private class PositionOriginator
     {
         private Vector3 _state;
