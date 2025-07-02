@@ -58,55 +58,37 @@ public class BulletRicochet : NetworkBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        //if (!Object.HasStateAuthority)
-        //    return;
+        if (!Object.HasStateAuthority)
+            return;
 
-        if (collision.contactCount > 0 && collision.gameObject.CompareTag("Wall"))
+        var hitObj = collision.gameObject;
+        var otherNetObj = hitObj.GetComponentInParent<NetworkObject>();
+
+        if (hitObj.CompareTag("Wall"))
         {
             Debug.LogWarning("CHOCO CON UNA PARED");
 
             MaxCount();
+
             Vector3 normal = collision.GetContact(0).normal;
             _dir = Vector3.Reflect(_dir, normal);
+            return;
         }
 
-        // solo rebota contra objetos etiquetados como "Wall", puedo hacerlo con mas pero no creo. a lo sumo sumo podria hacer con una habilidad en cadena para que vaya al siguiente enemigo y eso seria con el trigger
-        //if (collision.gameObject.CompareTag("Wall"))
-        //{
-        //hasToBounce = true;
-        //Debug.LogWarning("CHOCO CON UNA PARED");
-        //this.collision = collision;
-
-        //// Tomamos el primer punto de contacto
-        ////ContactPoint contact = collision.contacts[0];
-
-        //// Obtener directamente el primer ContactPoint sin asignar arreglo
-        //ContactPoint contact = collision.GetContact(0);
-
-        //Vector3 incomingDir = rb.velocity.normalized;
-        //Vector3 reflectDir = Vector3.Reflect(incomingDir, contact.normal);
-
-        //rb.velocity = reflectDir * speed;
-
-        //// opcional o por si acaso: alinear la rotación de la bala con su nueva dirección
-        ////transform.forward = reflectDir;
-
-        //---------------------------------------------------------------
-
-        //ANTES PEGABA CON ALGUNAS SUPERFICIES Y SE IBA A OTRA LADO O COPIABA SU NORMAL EN VEZ DE REBOTAR. YA NO
-
-        //Vector3 normal = collision.GetContact(0).normal;
-        //_dir = Vector3.Reflect(_dir, normal);
-
-        //Agus ADDON
-        //Vector3 normal = collision.GetContact(0).normal;
-        //_dir = Vector3.Reflect(_dir, normal);
-
-
-        //_dir = Vector3.Reflect(_dir, collision.GetContact(0).normal);
-
-        //sparksPrefab.SendEvent("Burst");
-    
+        // Si es un jugador con LifeHandler, y no es el dueño de la bala, le hago daño
+        if (otherNetObj != null && otherNetObj != Object && otherNetObj != null)
+        {
+            if (otherNetObj.InputAuthority != Object.InputAuthority)
+            {
+                var lifeHandler = hitObj.GetComponentInParent<LifeHandler>();
+                if (lifeHandler != null)
+                {
+                    lifeHandler.TakeDamage(10);
+                    Runner.Despawn(Object);
+                    return;
+                }
+            }
+        }
     }
 
     //public override void FixedUpdateNetwork()
@@ -149,33 +131,33 @@ public class BulletRicochet : NetworkBehaviour
     //    //}
     //}
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (Object == null || Runner == null)
-            return;
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if (Object == null || Runner == null)
+    //        return;
 
-        if (!Object.HasStateAuthority)
-            return;
+    //    if (!Object.HasStateAuthority)
+    //        return;
 
-        if (other == null)
-            return;
+    //    if (other == null)
+    //        return;
 
-        var otherNetObj = other.GetComponentInParent<NetworkObject>();
-        if (otherNetObj == null)
-            return;
+    //    var otherNetObj = other.GetComponentInParent<NetworkObject>();
+    //    if (otherNetObj == null)
+    //        return;
 
-        var lifeHandler = other.GetComponentInParent<LifeHandler>();
-        if (lifeHandler == null)
-            return;
+    //    var lifeHandler = other.GetComponentInParent<LifeHandler>();
+    //    if (lifeHandler == null)
+    //        return;
 
-        if (otherNetObj.InputAuthority == Object.InputAuthority)
-            return;
+    //    if (otherNetObj.InputAuthority == Object.InputAuthority)
+    //        return;
 
-        Debug.Log($"Host hace daño de {Object.InputAuthority} a {otherNetObj.InputAuthority}");
+    //    Debug.Log($"Host hace daño de {Object.InputAuthority} a {otherNetObj.InputAuthority}");
 
-        lifeHandler.TakeDamage(10);
-        Runner.Despawn(Object);
-    }
+    //    lifeHandler.TakeDamage(10);
+    //    Runner.Despawn(Object);
+    //}
 
     public void MaxCount()
     {
