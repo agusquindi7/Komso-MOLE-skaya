@@ -262,13 +262,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 1.5
-  m_Radius: 0.5
+  m_Height: 2.8
+  m_Radius: 0.7
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.22, z: 0}
+  m_Center: {x: 0, y: 0.8, z: 0}
 --- !u!114 &8463898809960262209
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -456,11 +456,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bd6781a06292544dbd70ca1e553ff7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnerEmpty: {fileID: 1151408879039776263}
   spawnerBullet: {fileID: 1151408879039776263}
   bullet: {fileID: 8606529967322161479, guid: c7a7c111b1fc4034eb8a7863e38056a7, type: 3}
-  cdMax: 0.5
-  cd: 0
   keyShoot: 327
 --- !u!114 &6386054307921687433
 MonoBehaviour:

@@ -6,60 +6,42 @@ using System;
 
 public class PlayerShoot : NetworkBehaviour
 {
-    public Transform spawnerEmpty;
     public Transform spawnerBullet;
     public GameObject bullet;
-    public float cdMax;
-    public float cd;
+    public TickTimer cd;
     public KeyCode keyShoot;
 
-    private bool isShooting;
+    private bool wantsToShoot;
 
     public void Update()
     {
-        //if (!HasStateAuthority) return;
-        //Agus ADDON
-        if (!Object.HasInputAuthority) return;
+        //if (!Object.HasInputAuthority) return;
 
-        //RotateSpawner(); MUEVO EL CAÑON EN NETWORK PARA QUE EL ENEMIGO VEA A DONDE VOY A DISPARAR
+        // Detecta el input local
         if (Input.GetMouseButtonDown(0))
         {
-            if (cd >= cdMax)
+            if (cd.ExpiredOrNotRunning(Runner))
             {
-                isShooting = true;
-                Debug.Log("Aprete Click");
-                cd = 0;
+                wantsToShoot = true;
+                cd = TickTimer.CreateFromSeconds(Runner, .6f);
             }
         }
-
-        cd += Mathf.Clamp(Time.deltaTime, 0, cdMax);
-
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (isShooting)
+        if (!Object.HasInputAuthority) return;
+
+        if (wantsToShoot)
         {
-            Shoot();
-            isShooting = false;
+            RPC_RequestBullet(spawnerBullet.position, spawnerBullet.rotation, Object.InputAuthority);
+            wantsToShoot = false;
         }
     }
 
-    private void Shoot()
-    {
-        RPC_RequestBullet(spawnerBullet.position, spawnerBullet.rotation, Object.InputAuthority);
-    }
-
-    //Agus ADDON
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     private void RPC_RequestBullet(Vector3 position, Quaternion rotation, PlayerRef owner)
     {
-        Runner.Spawn(bullet, position, rotation, owner); // Spawn la bala con autoridad del jugador que disparó
+        Runner.Spawn(bullet, position, rotation, owner);
     }
-
-    //[Rpc(RpcSources.StateAuthority, RpcTargets.StateAuthority)]
-    //private void RPC_SpawnBullet(Vector3 position, Quaternion rotation)
-    //{
-    //    Runner.Spawn(bullet, position, rotation);
-    //}
 }

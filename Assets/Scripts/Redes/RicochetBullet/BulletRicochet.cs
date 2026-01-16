@@ -58,8 +58,8 @@ public class BulletRicochet : NetworkBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (!Object.HasStateAuthority)
-            return;
+        if (Object == null || !Object.HasStateAuthority) return;
+        
 
         var hitObj = collision.gameObject;
         var otherNetObj = hitObj.GetComponentInParent<NetworkObject>();
@@ -75,7 +75,6 @@ public class BulletRicochet : NetworkBehaviour
             return;
         }
 
-        // Si es un jugador con LifeHandler, y no es el dueño de la bala, le hago daño
         if (otherNetObj != null && otherNetObj != Object && otherNetObj != null)
         {
             if (otherNetObj.InputAuthority != Object.InputAuthority)

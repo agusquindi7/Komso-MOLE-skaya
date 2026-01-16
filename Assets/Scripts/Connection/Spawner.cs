@@ -15,7 +15,7 @@ public class Spawner : MonoBehaviour, INetworkRunnerCallbacks
         {
             Vector3 newVector = new Vector3 (UnityEngine.Random.Range(-10, 10), UnityEngine.Random.Range(-6, 12), 0);
             //PASAR BOUNDS PARA QUE SEA RANDOM LA POSICION COMO UN BR
-            runner.Spawn(_playerPrefab, newVector, null, player);
+            runner.Spawn(_playerPrefab, newVector, Quaternion.identity, player);
         }
     }
 
