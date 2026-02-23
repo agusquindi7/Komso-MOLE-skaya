@@ -45,6 +45,14 @@ public class NetworkCharacterControllerCustom : NetworkCharacterController
 
    
     }
+    //NetworkCharacterController TIENE DE POR SI UN TELEPORT, PODRIA OVERRIDEARLO PARA DEJARLO MEJOR
+    //public void Teleport(Vector3? position = null, Quaternion? rotation = null)
+    //{
+    //    _controller.enabled = false;
+    //    NetworkTRSP.Teleport(this, transform, position, rotation);
+    //    _controller.enabled = true;
+    //}
+
 
     //public void RotateCannon(Vector3 mouseScreen, Transform spawnerEmpty)
     //{

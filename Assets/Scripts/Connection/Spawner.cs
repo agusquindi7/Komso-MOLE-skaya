@@ -13,9 +13,15 @@ public class Spawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (runner.IsServer)
         {
-            Vector3 newVector = new Vector3 (UnityEngine.Random.Range(-10, 10), UnityEngine.Random.Range(-6, 12), 0);
             //PASAR BOUNDS PARA QUE SEA RANDOM LA POSICION COMO UN BR
-            runner.Spawn(_playerPrefab, newVector, Quaternion.identity, player);
+            Vector3 newVector = new Vector3(UnityEngine.Random.Range(-10, 10), UnityEngine.Random.Range(-6, 12), 0);
+            //runner.Spawn(_playerPrefab, newVector, Quaternion.identity, player);
+
+
+
+            // 19-2-26 NUEVA IMPLEMENTACION: ASOCIAR GAMEOBJECT CON EL JUGADOR
+            var playerObj = runner.Spawn(_playerPrefab, newVector, Quaternion.identity, player);
+            runner.SetPlayerObject(player, playerObj);
         }
     }
 

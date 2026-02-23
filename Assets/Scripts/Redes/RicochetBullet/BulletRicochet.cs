@@ -16,6 +16,7 @@ public class BulletRicochet : NetworkBehaviour
     [SerializeField] private int _wallCount;
 
     [SerializeField] NetworkObject networkBullet;
+    public VisualEffect vfx;
 
     //[SerializeField] private Collision collision;
     //[SerializeField] bool hasToBounce;
@@ -68,6 +69,14 @@ public class BulletRicochet : NetworkBehaviour
         {
             Debug.LogWarning("CHOCO CON UNA PARED");
 
+
+            //LOGICA VFX            
+            RPC_PlayBounceVFX(hitObj.transform.position);
+
+
+
+
+
             MaxCount();
 
             Vector3 normal = collision.GetContact(0).normal;
@@ -77,6 +86,7 @@ public class BulletRicochet : NetworkBehaviour
 
         if (otherNetObj != null && otherNetObj != Object && otherNetObj != null)
         {
+            //Al mandar a que spawnee la bala en el script PlayerShoot, le pase un owner. InputAuthority = el jugador que la disparo, por eso daña a otro jugador si otherNetObj es diferente a la autoridad de quien disparo
             if (otherNetObj.InputAuthority != Object.InputAuthority)
             {
                 var lifeHandler = hitObj.GetComponentInParent<LifeHandler>();
@@ -173,5 +183,12 @@ public class BulletRicochet : NetworkBehaviour
                 Destroy(gameObject);
             }
         }
+    }
+
+    //LOGICA VFX
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    void RPC_PlayBounceVFX(Vector3 pos)
+    {
+        vfx.SendEvent("Bounce");
     }
 }
