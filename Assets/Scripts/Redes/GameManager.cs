@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
+using TMPro;
 
 public class GameManager : NetworkBehaviour
 {
@@ -11,6 +12,8 @@ public class GameManager : NetworkBehaviour
     [SerializeField] private GameObject waitImage;
     private List<PlayerRef> _players = new List <PlayerRef>();
     public static GameManager Instance { get; private set; }
+
+    public TextMeshProUGUI countdownText;
 
     public override void Spawned()
     {
@@ -88,11 +91,46 @@ public class GameManager : NetworkBehaviour
     void Win()
     {
         _winImage.SetActive(true);
+        countdownText.gameObject.SetActive(true);
+        StartCoroutine(CountdownToMenu());
     }
 
     void Defeat()
     {
         _loseImage.SetActive(true);
+        countdownText.gameObject.SetActive(true);
+        StartCoroutine(CountdownToMenu());
     }
 
+    IEnumerator CountdownToMenu()
+    {
+        for (int i = 5; i >= 0; i--)
+        {
+            yield return new WaitForSecondsRealtime(1f);
+            countdownText.text = $"VOLVIENDO AL MENU EN {i}...";
+        }
+
+        // Aquí ya terminó el conteo, procedemos a la salida
+        DesconectarYVolver();
+    }
+
+    async void DesconectarYVolver()
+    {
+        
+        //APAGO TODO PARA CUANDO VUELVO
+        _winImage.SetActive(false);
+        _loseImage.SetActive(false);
+        countdownText.gameObject.SetActive(false);
+
+        var runner = FindObjectOfType<NetworkRunner>();
+
+        // 1. Primero cargamos la escena localmente para asegurarnos de salir de la escena de red
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+
+        // 2. Después le decimos a Fusion que cierre todo
+        if (runner != null)
+        {
+            await runner.Shutdown();
+        }
+    }
 }

@@ -61,4 +61,9 @@ public class MainMenuHandler : MonoBehaviour
         
         _networkRunnerHandler.CreateGame(_sessionName.text, "Game"); //Nombre de la escena a la que pasamos
     }
+
+    public void QuitApplication()
+    {
+        Application.Quit();
+    }
 }
