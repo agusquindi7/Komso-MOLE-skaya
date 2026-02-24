@@ -10,6 +10,9 @@ public class LifeHandler : NetworkBehaviour
     private const byte MAX_LIFE = 100;
 
     public Slider slider;
+
+    public AudioSource audioSource;
+    public AudioClip hitSound;
     
     public override void Spawned()
     {
@@ -31,6 +34,8 @@ public class LifeHandler : NetworkBehaviour
 
         CurrentLife -= dmg;
 
+        RPCAudioHitSound();
+
         if (CurrentLife != 0) return;
 
         Debug.Log(Runner.LocalPlayer);
@@ -39,13 +44,19 @@ public class LifeHandler : NetworkBehaviour
         //DisconnectPlayer();
     }
 
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RPCAudioHitSound()
+    {
+        audioSource.PlayOneShot(hitSound, 1f);
+    }
+
     //void DisconnectPlayer()
     //{
     //    if (!Object.HasInputAuthority)
     //    {
     //        Runner.Disconnect(Object.InputAuthority);
     //    }
-        
+
     //    Runner.Despawn(Object);
     //}
 

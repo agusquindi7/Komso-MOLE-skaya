@@ -20,6 +20,9 @@ public class PlayerShoot : NetworkBehaviour
     public KeyCode _tpKeyShoot;
     private bool _tpWantsToShoot;
 
+    public AudioSource audioSource;
+    public AudioClip shootSound;
+
     public void Update()
     {
         //if (!Object.HasInputAuthority) return;
@@ -72,6 +75,7 @@ public class PlayerShoot : NetworkBehaviour
     private void RPC_RequestBullet(Vector3 position, Quaternion rotation, PlayerRef owner)
     {
         Runner.Spawn(bullet, position, rotation, owner);
+        RPCAudioShootSound();
     }
 
     //Bala TP
@@ -79,6 +83,13 @@ public class PlayerShoot : NetworkBehaviour
     private void RPC_RequestTPBullet(Vector3 position, Quaternion rotation, PlayerRef owner)
     {
         Runner.Spawn(_tpBullet, position, rotation, owner);
+        RPCAudioShootSound();
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RPCAudioShootSound()
+    {
+        audioSource.PlayOneShot(shootSound, 1f);
     }
 
     //SPAWNEAR BALA TP
